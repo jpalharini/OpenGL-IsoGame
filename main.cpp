@@ -3,25 +3,92 @@
 #include "stb_image.h"
 
 #include "Includes.h"
+#include "Triangle.h"
+#include "Tile.h"
+#include <iomanip>
 
-int WIDTH = 1300, HEIGHT = 300;
+int WIDTH = 1000, HEIGHT = 500;
 
 GLFWwindow* window;
 glm::mat4 projection;
 
 GLuint shaderProgram;
 
-int tileMap[10][10];
+Tile* tileMap[10][10];
+float tw = 100.0f;
+float th = 50.0f;
+
+bool checkCollision(int row, int column, double x, double y) {
+    if (row < 0 || row > 9 || column < 0 || column > 9) {
+        return false;
+    } else {
+        Triangle *tOps = new Triangle();
+
+        double p[] = {x, y};
+
+        Triangle *t[2] = {tileMap[row][column]->t1, tileMap[row][column]->t2};
+
+        double a1 = tOps->triangleArea(t[0]->A, p, t[0]->B);
+        double a2 = tOps->triangleArea(p, t[0]->B, t[0]->C);
+        double a3 = tOps->triangleArea(t[0]->A, p, t[0]->C);
+
+        double a4 = tOps->triangleArea(t[1]->A, p, t[1]->B);
+        double a5 = tOps->triangleArea(p, t[1]->B, t[1]->C);
+        double a6 = tOps->triangleArea(t[1]->A, p, t[1]->C);
+
+        if (t[0]->area() >= (a1 + a2 + a3) || t[1]->area() >= (a4 + a5 + a6)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
 
 // Callback function called upon click of mouse
 void mouseClick(GLFWwindow* window, int button, int action, int mods) {
 
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+
+        double mx, my;
+        glfwGetCursorPos(window, &mx, &my);
+
+        double yC = (((2 * mx / tw) + (2 * my / th)) / 2) - 5.5;
+        double xC = (-2 * my / th + yC) + 10.5;
+
+        int column = yC;
+        int row = xC;
+//
+//        double xT = abs(yC * (tw/2) + xC * tw);
+//        double yT = abs((yC * (th / 2) - xC * (th / 2) + HEIGHT / 2 - th / 2));
+
+        double xT = mx;
+        double yT = my;
+
+        cout << "\nMouse clicked, coordinates [" << fixed << mx << "," << my << "]\n" << endl;
+
+        cout << "Mouse clicked, de-projected coordinates [" << fixed << xC << "," << yC << "]\n" << endl;
+
+        if (checkCollision(row, column, xT, yT)) {
+            cout << "Clicked on tile [" << row << "," << column << "]\n" << endl;
+        } else if (checkCollision(row - 1, column, xT, yT)) {
+            cout << "Clicked on tile [" << row - 1 << "," << column << "]\n" << endl;
+        } else if (checkCollision(row + 1, column, xT, yT)) {
+            cout << "Clicked on tile [" << row + 1 << "," << column << "]\n" << endl;
+        } else if (checkCollision(row, column - 1, xT, yT)) {
+            cout << "Clicked on tile [" << row << "," << column - 1 << "]\n" << endl;
+        } else if (checkCollision(row, column + 1, xT, yT)) {
+            cout << "Clicked on tile [" << row << "," << column + 1 << "]\n" << endl;
+        } else if (checkCollision(row, column + 1, xT, yT)) {
+            cout << "Clicked on tile [" << row << "," << column + 1 << "]\n" << endl;
+        } else
+            return;
+    }
 }
 
 void loadTileMap() {
     string line, value;
 
-    ifstream in("../Resources/TileMap.csv");
+    ifstream in("../Resources/IsoTileMap.csv");
 
     if (!in) {
         cout << "Cannot open file.\n";
@@ -31,8 +98,8 @@ void loadTileMap() {
     for (int r = 9; r >= 0; r = r - 1) {
         getline(in, line);
 
-        if (!in.good())
-            break;
+//        if (!in.good())
+//            break;
 
         stringstream stream(line);
 
@@ -40,8 +107,11 @@ void loadTileMap() {
             getline(stream, value, ',');
 
             stringstream streamValue(value);
-            tileMap[r][c] = stoi(streamValue.str());
+            tileMap[r][c] = new Tile(r, c, tw, th, stoi(streamValue.str()), true, false);
+
+            cout << "\t" << tileMap[r][c]->texture << " ";
         }
+        cout << endl;
     }
 
     in.close();
@@ -92,7 +162,7 @@ int main() {
     }
     
     // Sets up initial ortho and viewport
-    projection =  glm::ortho(0.0f, (float) WIDTH, 0.0f, (float) HEIGHT, 0.1f, 100.0f);
+    projection =  glm::ortho(0.0f, (float) WIDTH, (float) HEIGHT, 0.0f, 0.1f, 100.0f);
     glViewport(0, 0, fbWidth, fbHeight);
 
     // Sets up texture processing
@@ -111,22 +181,22 @@ int main() {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     // Vertices
-    float tw = 100.0f;
-    float th = 50.0f;
-
     GLfloat vertices[] = {
-            tw/2, 0.0f, -0.1f, // top-left
-            0.0f, th/2, -0.1f, // bottom-left
-            tw/2, th,   -0.1f, // bottom-right
-            tw,   th/2, -0.1f  // top-right
+            tw/2, 0.0f, -0.1f, // top
+            0.0f, th/2, -0.1f, // left
+            tw/2, th,   -0.1f, // bottom
+            tw,   th/2, -0.1f  // right
     };
 
-    // Setup for X = 0.125f initially because it's a sprite
+
+    float xt = 1.0f/8;
+    float yt = 1.0f/12;
+
     GLfloat textureCoord[] = {
-            +0.000f, +0.125f, // top-left
-            +0.000f, +0.000f, // bottom-left
-            +0.125f, +0.000f, // bottom-right
-            +0.125f, +0.125f  // top-right
+            xt/2,  0.0f, // top-left
+            0.0f,  yt/2, // bottom-left
+            xt/2,  yt, // bottom-right
+            xt,    yt/2  // top-right
     };
 
     GLfloat identity[] = {
@@ -170,7 +240,7 @@ int main() {
     // Setting up texture for tiles
     GLuint textures[100];
 
-    data = stbi_load("../Resources/TileSet.png", &texWidth, &texHeight, &nrChannels, 0);
+    data = stbi_load("../Resources/IsoTileSet.png", &texWidth, &texHeight, &nrChannels, 0);
 
     glGenTextures(1, textures);
 
@@ -274,8 +344,6 @@ int main() {
         // Clear buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        oYv = 0.0f;
-
         glBindVertexArray(vao);
 
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "matrix"), 1, GL_FALSE, identity);
@@ -288,29 +356,28 @@ int main() {
 
         glUniform1i(glGetUniformLocation(shaderProgram, "theTexture"), 0);
 
-        for (int r = 0; r < 10; r = r + 1) {
-            for (int c = 0; c < 10; c = c + 1) {
+        for (int row = 0; row < 10; row = row + 1) {
+            for (int column = 0; column < 10; column = column + 1) {
+                tileID = tileMap[row][column]->texture;
+                oXt = (tileID % 8) * xt;
+                oYt = (tileID / 8) * yt;
+
+                oXv = column * (tw/2) + row * (tw/2);
+                oYv = column * (th/2) - row * (th/2);
+
                 glUniform1f(glGetUniformLocation(shaderProgram, "oXv"), oXv);
-                glUniform1f(glGetUniformLocation(shaderProgram, "oYv"), oYv);
+                glUniform1f(glGetUniformLocation(shaderProgram, "oYv"), oYv + HEIGHT/2);
 
-                tileID = tileMap[r][c];
-                oXt = (tileID % 8) / 8.0f;
-                oYt = (tileID / 8.0f) / 8.0f;
-
-                if(oYt < 0.125f) {
-                    oYt = 0.0f;
-                }
-                oXv = c * tw + r * (tw/2);
-                oYv = r * (th/2);
                 glUniform1f(glGetUniformLocation(shaderProgram, "oXt"), oXt);
                 glUniform1f(glGetUniformLocation(shaderProgram, "oYt"), oYt);
+
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
             }
         }
 
-        glUniform1f(glGetUniformLocation(shaderProgram, "oXt"), 0.0f);
-        glUniform1f(glGetUniformLocation(shaderProgram, "oYt"), 0.0f);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+//        glUniform1f(glGetUniformLocation(shaderProgram, "oXt"), 0.0f);
+//        glUniform1f(glGetUniformLocation(shaderProgram, "oYt"), 0.0f);
+//        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

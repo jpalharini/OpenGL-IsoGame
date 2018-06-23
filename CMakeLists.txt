@@ -9,7 +9,7 @@ add_executable(OpenGL_IsoGame
         CMakeLists.txt
         Includes.h
         main.cpp
-        )
+        Triangle.cpp Triangle.h Tile.cpp Tile.h TileMap.cpp TileMap.h)
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(GLFW REQUIRED glfw3)
