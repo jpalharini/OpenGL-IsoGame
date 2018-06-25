@@ -4,20 +4,21 @@
 
 #include "Tile.h"
 
-Tile::Tile(int x, int y, int tw, int th, int t, bool w, bool b) {
+Tile::Tile(int x, int y, int tw, int th, int sh, int t, bool w, bool b) {
     // Set offsets for drawing
     offsetX = y * (tw/2) + x * (tw/2);
-    offsetY = y * (th/2) - x * (th/2) + 500/2;
+    offsetY = y * (th/2) - x * (th/2) + sh/2;
 
-    // Sets triangles
+    // Sets vertices of triangles
     double Ax, Ay, Bx, By, Cx, Cy;
 
     /*
      * A (tX, tY)
-     * B (tX + tw/2, tY - th/2)
-     * C (tX + tw/2, tY + th/2)
+     * B (tX + TW/2, tY - TH/2)
+     * C (tX + TW/2, tY + TH/2)
      */
 
+    // Atributes coordinates for vertices of triangles
     Ax = offsetX;
     Ay = offsetY + th/2;
 

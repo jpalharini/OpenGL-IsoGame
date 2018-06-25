@@ -14,11 +14,12 @@ public:
     Triangle* t2;
     float offsetX;
     float offsetY;
+    float layer;
     int texture;
     bool walkable;
     bool bomb;
 
-    Tile (int x, int y, int w, int h, int t, bool wa, bool b);
+    Tile (int x, int y, int tw, int th, int sh, int t, bool wa, bool b);
 };
 
 

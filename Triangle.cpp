@@ -27,10 +27,12 @@ Triangle::Triangle(double Ax, double Ay, double Bx, double By, double Cx, double
     C[1] = Cy;
 }
 
+// Calculates the area of this very triangle
 double Triangle::area() {
-    return abs(((B[0] - A[0]) * (C[1] - A[1]) - (C[0] - A[0]) * (B[1] - A[1]))/2);
+    return triangleArea(A, B, C);
 }
 
+// Calculates the area of any triangle
 double Triangle::triangleArea(double* Ao, double* Bo, double* Co) {
     return abs(((Bo[0] - Ao[0]) * (Co[1] - Ao[1]) - (Co[0] - Ao[0]) * (Bo[1] - Ao[1]))/2);
 }

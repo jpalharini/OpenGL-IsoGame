@@ -16,7 +16,7 @@ public:
     Triangle(double Ax, double Ay, double Bx, double By, double Cx, double Cy);
 
     double area();
-    double triangleArea(double Ao[2], double Bo[2], double Co[2]);
+    static double triangleArea(double Ao[2], double Bo[2], double Co[2]);
 };
 
 
