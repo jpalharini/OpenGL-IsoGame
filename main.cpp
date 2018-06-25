@@ -50,7 +50,7 @@ bool explosion = false;
 int explosionCoords[2];
 
 // Textures that are walkable
-int walkableTextures[] = {10,11,13,14,15};
+int walkableTextures[] = {10,11,13,14,15,19};
 
 // Reads the tilemap from CSV file
 void loadTileMap() {
@@ -85,7 +85,7 @@ void loadTileMap() {
                 if (texture == walkableTextures[i]) {
                     // For each walkable texture aside from the starting tile, there is a 10% chance of bombs being placed
                     if (!(r == 1 && c == 13)){
-                        bomb = (rand() % 100) < 10;
+                        bomb = (rand() % 100) < 5;
                     }
                     walkable = true;
                 }
